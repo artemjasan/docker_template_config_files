@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: python your_app/manage.py runserver 0.0.0.0:8000
+    depends_on:
+      - db
+    environment:
+      POSTGRES_HOST: db
+    volumes:
+      - ./your_app/:root_dir/your_app
+    ports:
+      - "8000:8000"
+    container_name: your_app_web
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: pg_isready -U postgres
+      timeout: 20s
+      retries: 3
+    container_name: your_app_db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  pg_admin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+      PGADMIN_LISTEN_PORT: 5050
+    ports:
+      - "5050:5050"
+    container_name: your_app_pg_admin
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+      -
+volumes:
+  db-data:
+  pgadmin-data:
